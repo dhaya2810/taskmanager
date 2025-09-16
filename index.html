@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .app-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-success {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-notification {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .btn-notification:hover {
+            background-color: #d35400;
+        }
+        
+        /* Auth Forms */
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .auth-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input[type="text"],
+        input[type="password"],
+        input[type="datetime-local"],
+        input[type="time"],
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .auth-switch a {
+            color: #3498db;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Task Manager */
+        .task-manager {
+            display: none;
+            padding: 20px;
+        }
+        
+        .welcome-message {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        
+        .task-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .full-width {
+            grid-column: span 2;
+        }
+        
+        .task-input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .filter-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+        }
+        
+        .filter-btn.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .task-list {
+            list-style-type: none;
+        }
+        
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #3498db;
+        }
+        
+        .task-item.completed {
+            opacity: 0.7;
+            background-color: #f8f9fa;
+            border-left-color: #2ecc71;
+        }
+        
+        .task-item.urgent {
+            border-left-color: #e74c3c;
+        }
+        
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+        }
+        
+        .task-content {
+            flex: 1;
+            margin: 0 15px;
+        }
+        
+        .task-text {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .task-details {
+            font-size: 14px;
+            color: #7f8c8d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .success-message {
+            color: #2ecc71;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .notification-permission {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .urgent-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .task-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .full-width {
+                grid-column: span 1;
+            }
+            
+            .filter-options {
+                flex-direction: column;
+            }
+            
+            .task-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .task-actions {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .task-details {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="app-title">Task Manager Pro</div>
+            <div class="auth-buttons">
+                <button id="logoutBtn" class="btn-secondary" style="display: none;">Logout</button>
+            </div>
+        </header>
+
+        <!-- Login Form -->
+        <div id="loginContainer" class="auth-container">
+            <h2 class="auth-title">Login to Your Account</h2>
+            <div class="form-group">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password">
+            </div>
+            <button id="loginBtn" class="btn-primary" style="width: 100%;">Login</button>
+            <div class="auth-switch">
+                Don't have an account? <a id="showRegister">Register</a>
+            </div>
+            <div id="loginMessage" class="error-message"></div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerContainer" class="auth-container" style="display: none;">
+            <h2 class="auth-title">Create an Account</h2>
+            <div class="form-group">
+                <label for="registerUsername">Username</label>
+                <input type="text" id="registerUsername" placeholder="Choose a username">
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Password</label>
+                <input type="password" id="registerPassword" placeholder="Choose a password">
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm your password">
+            </div>
+            <button id="registerBtn" class="btn-primary" style="width: 100%;">Register</button>
+            <div class="auth-switch">
+                Already have an account? <a id="showLogin">Login</a>
+            </div>
+            <div id="registerMessage" class="error-message"></div>
+        </div>
+
+        <!-- Task Manager -->
+        <div id="taskManager" class="task-manager">
+            <h2 class="welcome-message">Welcome, <span id="usernameDisplay"></span>!</h2>
+            
+            <div class="notification-permission">
+                <div>Enable notifications for task reminders</div>
+                <button id="enableNotifications" class="btn-notification">Enable Notifications</button>
+            </div>
+            
+            <div class="task-form">
+                <input type="text" id="taskInput" class="task-input full-width" placeholder="Add a new task...">
+                
+                <div class="form-group">
+                    <label for="taskDate">Date</label>
+                    <input type="date" id="taskDate" class="task-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskTime">Time</label>
+                    <input type="time" id="taskTime" class="task-input">
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="taskVenue">Venue/Location</label>
+                    <input type="text" id="taskVenue" class="task-input" placeholder="Where is this happening?">
+                </div>
+                
+                <div class="urgent-checkbox full-width">
+                    <input type="checkbox" id="taskUrgent">
+                    <label for="taskUrgent">Mark as urgent</label>
+                </div>
+                
+                <button id="addTaskBtn" class="btn-success full-width">Add Task</button>
+            </div>
+            
+            <div class="filter-options">
+                <button class="filter-btn active" data-filter="all">All Tasks</button>
+                <button class="filter-btn" data-filter="active">Active</button>
+                <button class="filter-btn" data-filter="completed">Completed</button>
+                <button class="filter-btn" data-filter="urgent">Urgent</button>
+                <button class="filter-btn" data-filter="today">Today</button>
+            </div>
+            
+            <ul id="taskList" class="task-list">
+                <!-- Tasks will be added here dynamically -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const loginContainer = document.getElementById('loginContainer');
+        const registerContainer = document.getElementById('registerContainer');
+        const taskManager = document.getElementById('taskManager');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const showRegisterBtn = document.getElementById('showRegister');
+        const showLoginBtn = document.getElementById('showLogin');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const loginMessage = document.getElementById('loginMessage');
+        const registerMessage = document.getElementById('registerMessage');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        const taskInput = document.getElementById('taskInput');
+        const taskDate = document.getElementById('taskDate');
+        const taskTime = document.getElementById('taskTime');
+        const taskVenue = document.getElementById('taskVenue');
+        const taskUrgent = document.getElementById('taskUrgent');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const taskList = document.getElementById('taskList');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const enableNotificationsBtn = document.getElementById('enableNotifications');
+        
+        // Set default date to today
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        taskDate.value = `${yyyy}-${mm}-${dd}`;
+        
+        // Current user and filter state
+        let currentUser = null;
+        let currentFilter = 'all';
+        let notificationPermission = false;
+        let checkInterval = null;
+        
+        // Check if user is logged in on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = localStorage.getItem('currentUser');
+            if (loggedInUser) {
+                currentUser = JSON.parse(loggedInUser);
+                showTaskManager();
+            }
+            
+            // Check if notifications are supported
+            if (!('Notification' in window)) {
+                document.querySelector('.notification-permission').style.display = 'none';
+            } else if (Notification.permission === 'granted') {
+                notificationPermission = true;
+                document.querySelector('.notification-permission').style.display = 'none';
+            }
+        });
+        
+        // Show register form
+        showRegisterBtn.addEventListener('click', () => {
+            loginContainer.style.display = 'none';
+            registerContainer.style.display = 'block';
+            registerMessage.textContent = '';
+        });
+        
+        // Show login form
+        showLoginBtn.addEventListener('click', () => {
+            registerContainer.style.display = 'none';
+            loginContainer.style.display = 'block';
+            loginMessage.textContent = '';
+        });
+        
+        // Register functionality
+        registerBtn.addEventListener('click', () => {
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!username || !password) {
+                registerMessage.textContent = 'Please fill in all fields';
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                registerMessage.textContent = 'Passwords do not match';
+                return;
+            }
+            
+            // Check if user already exists
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            if (users.find(user => user.username === username)) {
+                registerMessage.textContent = 'Username already exists';
+                return;
+            }
+            
+            // Create new user
+            users.push({ username, password, tasks: [] });
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            registerMessage.textContent = 'Registration successful! Please login.';
+            registerMessage.className = 'success-message';
+            
+            // Clear form
+            document.getElementById('registerUsername').value = '';
+            document.getElementById('registerPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            
+            // Show login form after a delay
+            setTimeout(() => {
+                registerContainer.style.display = 'none';
+                loginContainer.style.display = 'block';
+                registerMessage.textContent = '';
+                registerMessage.className = 'error-message';
+            }, 1500);
+        });
+        
+        // Login functionality
+        loginBtn.addEventListener('click', () => {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                loginMessage.textContent = 'Please fill in all fields';
+                return;
+            }
+            
+            // Check if user exists and password matches
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(user => user.username === username && user.password === password);
+            
+            if (!user) {
+                loginMessage.textContent = 'Invalid username or password';
+                return;
+            }
+            
+            // Login successful
+            currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            showTaskManager();
+        });
+        
+        // Logout functionality
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            
+            taskManager.style.display = 'none';
+            logoutBtn.style.display = 'none';
+            loginContainer.style.display = 'block';
+            
+            // Clear login form
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            loginMessage.textContent = '';
+            
+            // Stop checking for notifications
+            if (checkInterval) {
+                clearInterval(checkInterval);
+                checkInterval = null;
+            }
+        });
+        
+        // Enable notifications
+        enableNotificationsBtn.addEventListener('click', () => {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        notificationPermission = true;
+                        document.querySelector('.notification-permission').style.display = 'none';
+                        
+                        // Start checking for notifications
+                        if (!checkInterval) {
+                            checkInterval = setInterval(checkForNotifications, 60000); // Check every minute
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Add task functionality
+        addTaskBtn.addEventListener('click', addTask);
+        taskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTask();
+        });
+        
+        function addTask() {
+            const taskText = taskInput.value.trim();
+            if (!taskText) return;
+            
+            // Add task to current user's tasks
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(user => user.username === currentUser.username);
+            
+            const newTask = {
+                id: Date.now(),
+                text: taskText,
+                completed: false,
+                date: taskDate.value,
+                time: taskTime.value,
+                venue: taskVenue.value,
+                urgent: taskUrgent.checked,
+                createdAt: new Date().toISOString()
+            };
+            
+            users[userIndex].tasks.push(newTask);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // Update current user
+            currentUser = users[userIndex];
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            // Clear input and render tasks
+            taskInput.value = '';
+            taskVenue.value = '';
+            taskUrgent.checked = false;
+            renderTasks();
+            
+            // Schedule notification if needed
+            scheduleNotification(newTask);
+        }
+        
+        // Filter tasks
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderTasks();
+            });
+        });
+        
+        // Render tasks based on current filter
+        function renderTasks() {
+            taskList.innerHTML = '';
+            
+            let tasksToRender = [];
+            
+            if (currentFilter === 'all') {
+                tasksToRender = currentUser.tasks;
+            } else if (currentFilter === 'active') {
+                tasksToRender = currentUser.tasks.filter(task => !task.completed);
+            } else if (currentFilter === 'completed') {
+                tasksToRender = currentUser.tasks.filter(task => task.completed);
+            } else if (currentFilter === 'urgent') {
+                tasksToRender = currentUser.tasks.filter(task => task.urgent && !task.completed);
+            } else if (currentFilter === 'today') {
+                const today = new Date().toISOString().split('T')[0];
+                tasksToRender = currentUser.tasks.filter(task => task.date === today && !task.completed);
+            }
+            
+            if (tasksToRender.length === 0) {
+                const emptyMessage = document.createElement('li');
+                emptyMessage.textContent = 'No tasks found';
+                emptyMessage.style.textAlign = 'center';
+                emptyMessage.style.padding = '20px';
+                emptyMessage.style.color = '#7f8c8d';
+                taskList.appendChild(emptyMessage);
+                return;
+            }
+            
+            // Sort tasks: urgent first, then by date/time
+            tasksToRender.sort((a, b) => {
+                if (a.urgent && !b.urgent) return -1;
+                if (!a.urgent && b.urgent) return 1;
+                
+                if (a.date !== b.date) {
+                    return new Date(a.date) - new Date(b.date);
+                }
+                
+                if (a.time && b.time) {
+                    return a.time.localeCompare(b.time);
+                }
+                
+                return 0;
+            });
+            
+            tasksToRender.forEach(task => {
+                const taskItem = document.createElement('li');
+                taskItem.className = `task-item ${task.completed ? 'completed' : ''} ${task.urgent ? 'urgent' : ''}`;
+                taskItem.dataset.id = task.id;
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = task.completed;
+                checkbox.addEventListener('change', () => toggleTaskCompleted(task.id));
+                
+                const taskContent = document.createElement('div');
+                taskContent.className = 'task-content';
+                
+                const taskText = document.createElement('div');
+                taskText.className = 'task-text';
+                taskText.textContent = task.text;
+                
+                const taskDetails = document.createElement('div');
+                taskDetails.className = 'task-details';
+                
+                if (task.date) {
+                    const dateElement = document.createElement('span');
+                    dateElement.innerHTML = `<strong>Date:</strong> ${formatDate(task.date)}`;
+                    taskDetails.appendChild(dateElement);
+                }
+                
+                if (task.time) {
+                    const timeElement = document.createElement('span');
+                    timeElement.innerHTML = `<strong>Time:</strong> ${formatTime(task.time)}`;
+                    taskDetails.appendChild(timeElement);
+                }
+                
+                if (task.venue) {
+                    const venueElement = document.createElement('span');
+                    venueElement.innerHTML = `<strong>Venue:</strong> ${task.venue}`;
+                    taskDetails.appendChild(venueElement);
+                }
+                
+                if (task.urgent) {
+                    const urgentElement = document.createElement('span');
+                    urgentElement.innerHTML = `<strong>URGENT</strong>`;
+                    urgentElement.style.color = '#e74c3c';
+                    taskDetails.appendChild(urgentElement);
+                }
+                
+                const taskActions = document.createElement('div');
+                taskActions.className = 'task-actions';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-secondary';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.addEventListener('click', () => deleteTask(task.id));
+                
+                taskActions.appendChild(deleteBtn);
+                
+                taskContent.appendChild(taskText);
+                taskContent.appendChild(taskDetails);
+                
+                taskItem.appendChild(checkbox);
+                taskItem.appendChild(taskContent);
+                taskItem.appendChild(taskActions);
+                
+                taskList.appendChild(taskItem);
+            });
+        }
+        
+        // Format date for display
+        function formatDate(dateString) {
+            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+        
+        // Format time for display
+        function formatTime(timeString) {
+            const [hours, minutes] = timeString.split(':');
+            const hour = parseInt(hours);
+            return `${hour % 12 || 12}:${minutes} ${hour >= 12 ? 'PM' : 'AM'}`;
+        }
+        
+        // Toggle task completed status
+        function toggleTaskCompleted(taskId) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(user => user.username === currentUser.username);
+            const taskIndex = users[userIndex].tasks.findIndex(task => task.id === taskId);
+            
+            users[userIndex].tasks[taskIndex].completed = !users[userIndex].tasks[taskIndex].completed;
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // Update current user
+            currentUser = users[userIndex];
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            renderTasks();
+        }
+        
+        // Delete task
+        function deleteTask(taskId) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userIndex = users.findIndex(user => user.username === currentUser.username);
+            
+            users[userIndex].tasks = users[userIndex].tasks.filter(task => task.id !== taskId);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // Update current user
+            currentUser = users[userIndex];
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            renderTasks();
+        }
+        
+        // Schedule notification for a task
+        function scheduleNotification(task) {
+            if (!task.date || !notificationPermission) return;
+            
+            const taskDateTime = new Date(`${task.date}T${task.time || '23:59'}`);
+            const now = new Date();
+            
+            // Only schedule if task is in the future
+            if (taskDateTime > now) {
+                const timeDiff = taskDateTime.getTime() - now.getTime();
+                
+                // Schedule notification 30 minutes before the task time
+                setTimeout(() => {
+                    if (Notification.permission === 'granted') {
+                        const notification = new Notification('Task Reminder', {
+                            body: `Your task "${task.text}" is coming up at ${task.time ? formatTime(task.time) : 'all day'}${task.venue ? ` at ${task.venue}` : ''}`,
+                            icon: 'https://cdn-icons-png.flaticon.com/512/3063/3063180.png'
+                        });
+                        
+                        notification.onclick = function() {
+                            window.focus();
+                        };
+                    }
+                }, timeDiff - (30 * 60 * 1000)); // 30 minutes before
+            }
+        }
+        
+        // Check for upcoming tasks to notify
+        function checkForNotifications() {
+            if (!notificationPermission) return;
+            
+            const now = new Date();
+            const in30Minutes = new Date(now.getTime() + (30 * 60 * 1000));
+            
+            currentUser.tasks.forEach(task => {
+                if (task.completed || !task.date) return;
+                
+                const taskDateTime = new Date(`${task.date}T${task.time || '23:59'}`);
+                
+                // Check if task is within the next 30 minutes and we haven't notified yet
+                if (taskDateTime > now && taskDateTime <= in30Minutes) {
+                    if (!task.notified) {
+                        // Show notification
+                        const notification = new Notification('Task Reminder', {
+                            body: `Your task "${task.text}" is coming up at ${task.time ? formatTime(task.time) : 'all day'}${task.venue ? ` at ${task.venue}` : ''}`,
+                            icon: 'https://cdn-icons-png.flaticon.com/512/3063/3063180.png'
+                        });
+                        
+                        notification.onclick = function() {
+                            window.focus();
+                        };
+                        
+                        // Mark as notified
+                        const users = JSON.parse(localStorage.getItem('users'));
+                        const userIndex = users.findIndex(user => user.username === currentUser.username);
+                        const taskIndex = users[userIndex].tasks.findIndex(t => t.id === task.id);
+                        users[userIndex].tasks[taskIndex].notified = true;
+                        localStorage.setItem('users', JSON.stringify(users));
+                        
+                        // Update current user
+                        currentUser = users[userIndex];
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    }
+                }
+            });
+        }
+        
+        // Show task manager after login
+        function showTaskManager() {
+            loginContainer.style.display = 'none';
+            registerContainer.style.display = 'none';
+            taskManager.style.display = 'block';
+            logoutBtn.style.display = 'block';
+            
+            usernameDisplay.textContent = currentUser.username;
+            renderTasks();
+            
+            // Start checking for notifications if permission is granted
+            if (Notification.permission === 'granted') {
+                notificationPermission = true;
+                document.querySelector('.notification-permission').style.display = 'none';
+                
+                if (!checkInterval) {
+                    checkInterval = setInterval(checkForNotifications, 60000); // Check every minute
+                }
+            }
+            
+            // Schedule notifications for existing tasks
+            currentUser.tasks.forEach(task => {
+                if (!task.completed) {
+                    scheduleNotification(task);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

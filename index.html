@@ -445,21 +445,64 @@
         let currentFilter = 'all';
         let notificationPermission = false;
         let checkInterval = null;
+        let db = null;
+        
+        // Initialize the database
+        function initDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('TaskManagerDB', 2);
+                
+                request.onerror = () => {
+                    console.error('IndexedDB error:', request.error);
+                    reject(request.error);
+                };
+                
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    
+                    // Create users store if it doesn't exist
+                    if (!db.objectStoreNames.contains('users')) {
+                        const usersStore = db.createObjectStore('users', { keyPath: 'username' });
+                        usersStore.createIndex('username', 'username', { unique: true });
+                    }
+                    
+                    // Create tasks store if it doesn't exist
+                    if (!db.objectStoreNames.contains('tasks')) {
+                        const tasksStore = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+                        tasksStore.createIndex('username', 'username', { unique: false });
+                        tasksStore.createIndex('completed', 'completed', { unique: false });
+                    }
+                };
+            });
+        }
         
         // Check if user is logged in on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            const loggedInUser = localStorage.getItem('currentUser');
-            if (loggedInUser) {
-                currentUser = JSON.parse(loggedInUser);
-                showTaskManager();
-            }
-            
-            // Check if notifications are supported
-            if (!('Notification' in window)) {
-                document.querySelector('.notification-permission').style.display = 'none';
-            } else if (Notification.permission === 'granted') {
-                notificationPermission = true;
-                document.querySelector('.notification-permission').style.display = 'none';
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await initDatabase();
+                
+                const loggedInUser = localStorage.getItem('currentUser');
+                if (loggedInUser) {
+                    currentUser = JSON.parse(loggedInUser);
+                    await loadUserTasks();
+                    showTaskManager();
+                }
+                
+                // Check if notifications are supported
+                if (!('Notification' in window)) {
+                    document.querySelector('.notification-permission').style.display = 'none';
+                } else if (Notification.permission === 'granted') {
+                    notificationPermission = true;
+                    document.querySelector('.notification-permission').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Failed to initialize database:', error);
+                loginMessage.textContent = 'Failed to initialize application. Please refresh the page.';
             }
         });
         
@@ -478,7 +521,7 @@
         });
         
         // Register functionality
-        registerBtn.addEventListener('click', () => {
+        registerBtn.addEventListener('click', async () => {
             const username = document.getElementById('registerUsername').value;
             const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
@@ -493,36 +536,40 @@
                 return;
             }
             
-            // Check if user already exists
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            if (users.find(user => user.username === username)) {
-                registerMessage.textContent = 'Username already exists';
-                return;
+            try {
+                // Check if user already exists
+                const userExists = await getUser(username);
+                if (userExists) {
+                    registerMessage.textContent = 'Username already exists';
+                    return;
+                }
+                
+                // Create new user
+                await addUser(username, password);
+                
+                registerMessage.textContent = 'Registration successful! Please login.';
+                registerMessage.className = 'success-message';
+                
+                // Clear form
+                document.getElementById('registerUsername').value = '';
+                document.getElementById('registerPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                
+                // Show login form after a delay
+                setTimeout(() => {
+                    registerContainer.style.display = 'none';
+                    loginContainer.style.display = 'block';
+                    registerMessage.textContent = '';
+                    registerMessage.className = 'error-message';
+                }, 1500);
+            } catch (error) {
+                console.error('Registration error:', error);
+                registerMessage.textContent = 'Registration failed. Please try again.';
             }
-            
-            // Create new user
-            users.push({ username, password, tasks: [] });
-            localStorage.setItem('users', JSON.stringify(users));
-            
-            registerMessage.textContent = 'Registration successful! Please login.';
-            registerMessage.className = 'success-message';
-            
-            // Clear form
-            document.getElementById('registerUsername').value = '';
-            document.getElementById('registerPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
-            
-            // Show login form after a delay
-            setTimeout(() => {
-                registerContainer.style.display = 'none';
-                loginContainer.style.display = 'block';
-                registerMessage.textContent = '';
-                registerMessage.className = 'error-message';
-            }, 1500);
         });
         
         // Login functionality
-        loginBtn.addEventListener('click', () => {
+        loginBtn.addEventListener('click', async () => {
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
             
@@ -531,19 +578,26 @@
                 return;
             }
             
-            // Check if user exists and password matches
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(user => user.username === username && user.password === password);
-            
-            if (!user) {
-                loginMessage.textContent = 'Invalid username or password';
-                return;
+            try {
+                // Check if user exists and password matches
+                const user = await getUser(username);
+                
+                if (!user || user.password !== password) {
+                    loginMessage.textContent = 'Invalid username or password';
+                    return;
+                }
+                
+                // Login successful
+                currentUser = { username: user.username, tasks: [] };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Load user tasks from database
+                await loadUserTasks();
+                showTaskManager();
+            } catch (error) {
+                console.error('Login error:', error);
+                loginMessage.textContent = 'Login failed. Please try again.';
             }
-            
-            // Login successful
-            currentUser = user;
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            showTaskManager();
         });
         
         // Logout functionality
@@ -590,40 +644,42 @@
             if (e.key === 'Enter') addTask();
         });
         
-        function addTask() {
+        async function addTask() {
             const taskText = taskInput.value.trim();
             if (!taskText) return;
             
-            // Add task to current user's tasks
-            const users = JSON.parse(localStorage.getItem('users'));
-            const userIndex = users.findIndex(user => user.username === currentUser.username);
-            
             const newTask = {
-                id: Date.now(),
                 text: taskText,
                 completed: false,
                 date: taskDate.value,
                 time: taskTime.value,
                 venue: taskVenue.value,
                 urgent: taskUrgent.checked,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                username: currentUser.username
             };
             
-            users[userIndex].tasks.push(newTask);
-            localStorage.setItem('users', JSON.stringify(users));
-            
-            // Update current user
-            currentUser = users[userIndex];
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            // Clear input and render tasks
-            taskInput.value = '';
-            taskVenue.value = '';
-            taskUrgent.checked = false;
-            renderTasks();
-            
-            // Schedule notification if needed
-            scheduleNotification(newTask);
+            try {
+                // Add task to database
+                const taskId = await addTaskToDB(newTask);
+                newTask.id = taskId;
+                
+                // Add to current user's tasks
+                currentUser.tasks.push(newTask);
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Clear input and render tasks
+                taskInput.value = '';
+                taskVenue.value = '';
+                taskUrgent.checked = false;
+                renderTasks();
+                
+                // Schedule notification if needed
+                scheduleNotification(newTask);
+            } catch (error) {
+                console.error('Error adding task:', error);
+                alert('Failed to add task. Please try again.');
+            }
         }
         
         // Filter tasks
@@ -761,34 +817,45 @@
         }
         
         // Toggle task completed status
-        function toggleTaskCompleted(taskId) {
-            const users = JSON.parse(localStorage.getItem('users'));
-            const userIndex = users.findIndex(user => user.username === currentUser.username);
-            const taskIndex = users[userIndex].tasks.findIndex(task => task.id === taskId);
-            
-            users[userIndex].tasks[taskIndex].completed = !users[userIndex].tasks[taskIndex].completed;
-            localStorage.setItem('users', JSON.stringify(users));
-            
-            // Update current user
-            currentUser = users[userIndex];
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            renderTasks();
+        async function toggleTaskCompleted(taskId) {
+            try {
+                // Find the task
+                const taskIndex = currentUser.tasks.findIndex(task => task.id === taskId);
+                if (taskIndex === -1) return;
+                
+                // Toggle completed status
+                currentUser.tasks[taskIndex].completed = !currentUser.tasks[taskIndex].completed;
+                
+                // Update in database
+                await updateTaskInDB(currentUser.tasks[taskIndex]);
+                
+                // Update current user in localStorage
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                renderTasks();
+            } catch (error) {
+                console.error('Error updating task:', error);
+                alert('Failed to update task. Please try again.');
+            }
         }
         
         // Delete task
-        function deleteTask(taskId) {
-            const users = JSON.parse(localStorage.getItem('users'));
-            const userIndex = users.findIndex(user => user.username === currentUser.username);
-            
-            users[userIndex].tasks = users[userIndex].tasks.filter(task => task.id !== taskId);
-            localStorage.setItem('users', JSON.stringify(users));
-            
-            // Update current user
-            currentUser = users[userIndex];
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            renderTasks();
+        async function deleteTask(taskId) {
+            try {
+                // Remove from database
+                await deleteTaskFromDB(taskId);
+                
+                // Remove from current user's tasks
+                currentUser.tasks = currentUser.tasks.filter(task => task.id !== taskId);
+                
+                // Update current user in localStorage
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                renderTasks();
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                alert('Failed to delete task. Please try again.');
+            }
         }
         
         // Schedule notification for a task
@@ -844,15 +911,12 @@
                         };
                         
                         // Mark as notified
-                        const users = JSON.parse(localStorage.getItem('users'));
-                        const userIndex = users.findIndex(user => user.username === currentUser.username);
-                        const taskIndex = users[userIndex].tasks.findIndex(t => t.id === task.id);
-                        users[userIndex].tasks[taskIndex].notified = true;
-                        localStorage.setItem('users', JSON.stringify(users));
-                        
-                        // Update current user
-                        currentUser = users[userIndex];
+                        const taskIndex = currentUser.tasks.findIndex(t => t.id === task.id);
+                        currentUser.tasks[taskIndex].notified = true;
                         localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        
+                        // Update in database
+                        updateTaskInDB(currentUser.tasks[taskIndex]);
                     }
                 }
             });
@@ -883,6 +947,84 @@
                 if (!task.completed) {
                     scheduleNotification(task);
                 }
+            });
+        }
+        
+        // Database functions
+        function getUser(username) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['users'], 'readonly');
+                const store = transaction.objectStore('users');
+                const request = store.get(username);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function addUser(username, password) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['users'], 'readwrite');
+                const store = transaction.objectStore('users');
+                const request = store.add({ username, password });
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function addTaskToDB(task) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['tasks'], 'readwrite');
+                const store = transaction.objectStore('tasks');
+                const request = store.add(task);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function updateTaskInDB(task) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['tasks'], 'readwrite');
+                const store = transaction.objectStore('tasks');
+                const request = store.put(task);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function deleteTaskFromDB(taskId) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['tasks'], 'readwrite');
+                const store = transaction.objectStore('tasks');
+                const request = store.delete(taskId);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function loadUserTasks() {
+            return new Promise((resolve, reject) => {
+                if (!currentUser) {
+                    resolve([]);
+                    return;
+                }
+                
+                const transaction = db.transaction(['tasks'], 'readonly');
+                const store = transaction.objectStore('tasks');
+                const index = store.index('username');
+                const request = index.getAll(currentUser.username);
+                
+                request.onsuccess = () => {
+                    currentUser.tasks = request.result;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    resolve(request.result);
+                };
+                
+                request.onerror = () => reject(request.error);
             });
         }
     </script>

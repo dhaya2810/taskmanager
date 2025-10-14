@@ -1,717 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Task Manager Pro</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body {
-      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-      color: #333; min-height:100vh; padding:20px;
-    }
-    .container {
-      max-width:1000px; margin:0 auto; background:white; border-radius:12px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.2); overflow:hidden;
-    }
-    header {
-      display:flex; justify-content:space-between; align-items:center;
-      padding:20px 30px; background:#2c3e50; color:white;
-    }
-    .app-title { font-size:28px; font-weight:700; color:white; }
-    .auth-buttons { display:flex; gap:10px; align-items:center; }
-    button { padding:10px 15px; border:none; border-radius:4px; cursor:pointer; font-weight:600; transition:all .25s ease; }
-    .btn-primary { background:#3498db; color:#fff; }
-    .btn-primary:hover { background:#2980b9; }
-    .btn-secondary { background:#e74c3c; color:#fff; }
-    .btn-secondary:hover { background:#c0392b; }
-    .btn-success { background:#2ecc71; color:#fff; }
-    .btn-success:hover { background:#27ae60; }
-    .btn-notification { background:#f39c12; color:#fff; }
-    .btn-notification:hover { background:#d35400; }
-
-    .auth-container { max-width:400px; margin:50px auto; padding:30px; background:white; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.1); }
-    .auth-title { text-align:center; margin-bottom:20px; color:#2c3e50; }
-    .form-group { margin-bottom:20px; }
-    label { display:block; margin-bottom:5px; font-weight:600; }
-    input[type="text"], input[type="password"], input[type="email"], input[type="date"], input[type="time"] {
-      width:100%; padding:12px; border:1px solid #ddd; border-radius:4px; font-size:16px;
-    }
-    .auth-switch { text-align:center; margin-top:20px; }
-    .auth-switch a { color:#3498db; text-decoration:none; cursor:pointer; }
-    .auth-switch a:hover { text-decoration:underline; }
-
-    .task-manager { display:none; padding:20px; }
-    .welcome-message { margin-bottom:20px; font-size:18px; color:#2c3e50; }
-    .task-form {
-      display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:30px; padding:20px; background:#f8f9fa; border-radius:8px;
-    }
-    .full-width { grid-column:span 2; }
-    .task-input { padding:12px; border:1px solid #ddd; border-radius:4px; font-size:16px; }
-    .filter-options { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
-    .filter-btn { background:#f8f9fa; border:1px solid #ddd; padding:8px 15px; cursor:pointer; }
-    .filter-btn.active { background:#3498db; color:white; border-color:#3498db; }
-    .task-list { list-style-type:none; }
-    .task-item { display:flex; justify-content:space-between; align-items:center; padding:15px; background:white; border-radius:8px; margin-bottom:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); border-left:5px solid #3498db; }
-    .task-item.completed { opacity:0.7; background:#f8f9fa; border-left-color:#2ecc71; }
-    .task-item.urgent { border-left-color:#e74c3c; }
-    .task-item.completed .task-text { text-decoration:line-through; }
-    .task-content { flex:1; margin:0 15px; }
-    .task-text { font-weight:500; margin-bottom:5px; }
-    .task-details { font-size:14px; color:#7f8c8d; display:flex; flex-wrap:wrap; gap:15px; }
-    .task-actions { display:flex; gap:10px; }
-    .error-message { color:#e74c3c; margin-top:5px; font-size:14px; }
-    .success-message { color:#2ecc71; margin-top:5px; font-size:14px; }
-    .notification-permission { background:#fff3cd; border:1px solid #ffeaa7; border-radius:4px; padding:10px; margin:20px 0; display:flex; justify-content:space-between; align-items:center; }
-
-    .urgent-checkbox { display:flex; align-items:center; gap:5px; }
-
-    @media (max-width:768px) {
-      .task-form { grid-template-columns:1fr; }
-      .full-width { grid-column:span 1; }
-      .filter-options { flex-direction:column; }
-      .task-item { flex-direction:column; align-items:flex-start; }
-      .task-actions { margin-top:10px; width:100%; justify-content:flex-end; }
-      .task-details { flex-direction:column; gap:5px; }
-    }
-
-    /* small helpers */
-    .center { text-align:center; }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
+    body{background:linear-gradient(135deg,#2b5876,#4e4376);color:#fff;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px;}
+    h1{margin:20px;}
+    .container{background:rgba(255,255,255,0.1);padding:20px;border-radius:10px;width:100%;max-width:400px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);}
+    input,button{padding:10px;margin:8px 0;width:90%;border:none;border-radius:5px;}
+    input{outline:none;}
+    button{cursor:pointer;background:#00c6ff;color:#fff;font-weight:bold;transition:0.3s;}
+    button:hover{background:#0072ff;}
+    ul{list-style:none;padding:0;margin-top:15px;}
+    li{background:rgba(255,255,255,0.15);margin:5px 0;padding:8px;border-radius:5px;display:flex;justify-content:space-between;align-items:center;}
+    .logout{background:#ff5252;}
+    .logout:hover{background:#ff1744;}
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="app-title">Task Manager Pro</div>
-      <div class="auth-buttons">
-        <div id="authInfo" style="color:white; display:flex; align-items:center; gap:12px;"></div>
-        <button id="logoutBtn" class="btn-secondary" style="display:none;">Logout</button>
-      </div>
-    </header>
+  <h1>Task Manager Pro</h1>
 
-    <!-- Login Form -->
-    <div id="loginContainer" class="auth-container">
-      <h2 class="auth-title">Login to Your Account</h2>
-
-      <div class="form-group">
-        <label for="loginEmail">Email</label>
-        <input type="email" id="loginEmail" placeholder="Enter your email">
-      </div>
-
-      <div class="form-group">
-        <label for="loginPassword">Password</label>
-        <input type="password" id="loginPassword" placeholder="Enter your password">
-      </div>
-
-      <button id="loginBtn" class="btn-primary" style="width:100%;">Login</button>
-
-      <div style="margin-top:12px;">
-        <button id="googleLogin" class="btn-success" style="width:100%;">Continue with Google</button>
-      </div>
-
-      <div class="auth-switch" style="margin-top:14px;">
-        Don't have an account? <a id="showRegister">Register</a>
-      </div>
-
-      <div id="loginMessage" class="error-message"></div>
-    </div>
-
-    <!-- Register Form -->
-    <div id="registerContainer" class="auth-container" style="display:none;">
-      <h2 class="auth-title">Create an Account</h2>
-
-      <div class="form-group">
-        <label for="registerEmail">Email</label>
-        <input type="email" id="registerEmail" placeholder="Choose an email">
-      </div>
-
-      <div class="form-group">
-        <label for="registerPassword">Password</label>
-        <input type="password" id="registerPassword" placeholder="Choose a password">
-      </div>
-
-      <div class="form-group">
-        <label for="confirmPassword">Confirm Password</label>
-        <input type="password" id="confirmPassword" placeholder="Confirm your password">
-      </div>
-
-      <button id="registerBtn" class="btn-primary" style="width:100%;">Register</button>
-
-      <div class="auth-switch">
-        Already have an account? <a id="showLogin">Login</a>
-      </div>
-
-      <div id="registerMessage" class="error-message"></div>
-    </div>
-
-    <!-- Task Manager -->
-    <div id="taskManager" class="task-manager">
-      <h2 class="welcome-message">Welcome, <span id="usernameDisplay"></span>!</h2>
-
-      <div class="notification-permission">
-        <div>Enable notifications for task reminders</div>
-        <button id="enableNotifications" class="btn-notification">Enable Notifications</button>
-      </div>
-
-      <div class="task-form">
-        <input type="text" id="taskInput" class="task-input full-width" placeholder="Add a new task...">
-
-        <div class="form-group">
-          <label for="taskDate">Date</label>
-          <input type="date" id="taskDate" class="task-input">
-        </div>
-
-        <div class="form-group">
-          <label for="taskTime">Time</label>
-          <input type="time" id="taskTime" class="task-input">
-        </div>
-
-        <div class="form-group full-width">
-          <label for="taskVenue">Venue/Location</label>
-          <input type="text" id="taskVenue" class="task-input" placeholder="Where is this happening?">
-        </div>
-
-        <div class="urgent-checkbox full-width">
-          <input type="checkbox" id="taskUrgent">
-          <label for="taskUrgent">Mark as urgent</label>
-        </div>
-
-        <button id="addTaskBtn" class="btn-success full-width">Add Task</button>
-      </div>
-
-      <div class="filter-options">
-        <button class="filter-btn active" data-filter="all">All Tasks</button>
-        <button class="filter-btn" data-filter="active">Active</button>
-        <button class="filter-btn" data-filter="completed">Completed</button>
-        <button class="filter-btn" data-filter="urgent">Urgent</button>
-        <button class="filter-btn" data-filter="today">Today</button>
-      </div>
-
-      <ul id="taskList" class="task-list"></ul>
-    </div>
+  <!-- Auth Section -->
+  <div id="authSection" class="container">
+    <h3>Login / Sign Up</h3>
+    <input type="email" id="email" placeholder="Email" /><br />
+    <input type="password" id="password" placeholder="Password" /><br />
+    <button id="loginBtn">Login</button>
+    <button id="signupBtn">Sign Up</button>
+    <hr style="margin:10px 0;opacity:0.3;">
+    <button id="googleLogin">Login with Google</button>
   </div>
 
-  <!-- Firebase + App Logic -->
+  <!-- Task Section -->
+  <div id="taskSection" class="container" style="display:none;">
+    <h3>Your Tasks</h3>
+    <input type="text" id="taskInput" placeholder="Enter new task" />
+    <button id="addTaskBtn">Add Task</button>
+    <ul id="taskList"></ul>
+    <button id="logoutBtn" class="logout">Logout</button>
+  </div>
+
   <script type="module">
-    // ------------------------
-    // Firebase SDK (modular)
-    // ------------------------
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      signOut,
-      GoogleAuthProvider,
-      signInWithPopup,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      getDocs,
-      query,
-      where,
-      orderBy,
-      doc,
-      updateDoc,
-      deleteDoc,
-      onSnapshot
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-    // ------------------------
-    // Your Firebase config (provided)
-    // ------------------------
+    // ✅ Firebase Config
     const firebaseConfig = {
-      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
       apiKey: "AIzaSyCELYw9zEDgYk9Y2-ivjryu5fU_UOOulZM",
       authDomain: "task-manager-3ff20.firebaseapp.com",
       projectId: "task-manager-3ff20",
-      storageBucket: "task-manager-3ff20.firebasestorage.app",
+      storageBucket: "task-manager-3ff20.appspot.com",
       messagingSenderId: "886222939115",
       appId: "1:886222939115:web:6d29c1e044178925ddafae",
       measurementId: "G-GYZJWK6KQW"
     };
 
-    // Initialize Firebase
+    // ✅ Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const googleProvider = new GoogleAuthProvider();
+    const provider = new GoogleAuthProvider();
 
-    // ------------------------
-    // DOM Elements
-    // ------------------------
-    const loginContainer = document.getElementById('loginContainer');
-    const registerContainer = document.getElementById('registerContainer');
-    const taskManager = document.getElementById('taskManager');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const showRegisterBtn = document.getElementById('showRegister');
-    const showLoginBtn = document.getElementById('showLogin');
-    const loginBtn = document.getElementById('loginBtn');
-    const registerBtn = document.getElementById('registerBtn');
-    const loginMessage = document.getElementById('loginMessage');
-    const registerMessage = document.getElementById('registerMessage');
-    const usernameDisplay = document.getElementById('usernameDisplay');
-    const taskInput = document.getElementById('taskInput');
-    const taskDate = document.getElementById('taskDate');
-    const taskTime = document.getElementById('taskTime');
-    const taskVenue = document.getElementById('taskVenue');
-    const taskUrgent = document.getElementById('taskUrgent');
-    const addTaskBtn = document.getElementById('addTaskBtn');
-    const taskList = document.getElementById('taskList');
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const enableNotificationsBtn = document.getElementById('enableNotifications');
-    const googleLoginBtn = document.getElementById('googleLogin');
-    const authInfo = document.getElementById('authInfo');
+    const authSection = document.getElementById("authSection");
+    const taskSection = document.getElementById("taskSection");
+    const taskList = document.getElementById("taskList");
+    const taskInput = document.getElementById("taskInput");
 
-    // default date to today
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    taskDate.value = `${yyyy}-${mm}-${dd}`;
+    // 🔹 Login
+    document.getElementById("loginBtn").onclick = () => {
+      const emailVal = email.value.trim();
+      const passVal = password.value.trim();
+      signInWithEmailAndPassword(auth, emailVal, passVal)
+        .then(() => alert("Login successful!"))
+        .catch(e => alert(e.message));
+    };
 
-    // state
-    let currentUser = null;
-    let currentFilter = 'all';
-    let notificationPermission = false;
-    let unsubscribeTasksListener = null; // to detach realtime listener
+    // 🔹 Signup
+    document.getElementById("signupBtn").onclick = () => {
+      const emailVal = email.value.trim();
+      const passVal = password.value.trim();
+      createUserWithEmailAndPassword(auth, emailVal, passVal)
+        .then(() => alert("Signup successful!"))
+        .catch(e => alert(e.message));
+    };
 
-    // ------------------------
-    // UI: show/hide auth forms
-    // ------------------------
-    showRegisterBtn.addEventListener('click', () => {
-      loginContainer.style.display = 'none';
-      registerContainer.style.display = 'block';
-      registerMessage.textContent = '';
-    });
+    // 🔹 Google Login
+    document.getElementById("googleLogin").onclick = () => {
+      signInWithPopup(auth, provider)
+        .then(() => alert("Google Login successful!"))
+        .catch(e => alert(e.message));
+    };
 
-    showLoginBtn.addEventListener('click', () => {
-      registerContainer.style.display = 'none';
-      loginContainer.style.display = 'block';
-      loginMessage.textContent = '';
-    });
+    // 🔹 Logout
+    document.getElementById("logoutBtn").onclick = () => {
+      signOut(auth);
+    };
 
-    // ------------------------
-    // Register (Email + Password)
-    // ------------------------
-    registerBtn.addEventListener('click', async () => {
-      const email = document.getElementById('registerEmail').value.trim();
-      const password = document.getElementById('registerPassword').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
-
-      registerMessage.className = 'error-message';
-      if (!email || !password) {
-        registerMessage.textContent = 'Please fill in all fields';
-        return;
-      }
-      if (password !== confirmPassword) {
-        registerMessage.textContent = 'Passwords do not match';
-        return;
-      }
-
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        registerMessage.className = 'success-message';
-        registerMessage.textContent = 'Registration successful! Redirecting...';
-        // clear form
-        document.getElementById('registerEmail').value = '';
-        document.getElementById('registerPassword').value = '';
-        document.getElementById('confirmPassword').value = '';
-      } catch (err) {
-        console.error('Register error:', err);
-        registerMessage.textContent = err.message || 'Registration failed';
-      }
-    });
-
-    // ------------------------
-    // Login (Email + Password)
-    // ------------------------
-    loginBtn.addEventListener('click', async () => {
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value;
-
-      loginMessage.className = 'error-message';
-      if (!email || !password) {
-        loginMessage.textContent = 'Please fill in all fields';
-        return;
-      }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        loginMessage.textContent = '';
-      } catch (err) {
-        console.error('Login error:', err);
-        loginMessage.textContent = err.message || 'Login failed';
-      }
-    });
-
-    // ------------------------
-    // Google Sign In
-    // ------------------------
-    googleLoginBtn.addEventListener('click', async () => {
-      try {
-        await signInWithPopup(auth, googleProvider);
-      } catch (err) {
-        console.error('Google sign-in error:', err);
-        alert(err.message || 'Google sign-in failed');
-      }
-    });
-
-    // ------------------------
-    // Logout
-    // ------------------------
-    logoutBtn.addEventListener('click', async () => {
-      try {
-        await signOut(auth);
-      } catch (err) {
-        console.error('Sign out error:', err);
-      }
-    });
-
-    // ------------------------
-    // Listen for auth state changes
-    // ------------------------
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        currentUser = { uid: user.uid, email: user.email, name: user.displayName || user.email };
-        // Update UI
-        authInfo.textContent = currentUser.email;
-        logoutBtn.style.display = 'inline-block';
-        loginContainer.style.display = 'none';
-        registerContainer.style.display = 'none';
-        taskManager.style.display = 'block';
-        usernameDisplay.textContent = currentUser.name;
-
-        // Firestore: start listening to user's tasks realtime
-        startTasksListener();
-      } else {
-        // Signed out
-        currentUser = null;
-        authInfo.textContent = '';
-        logoutBtn.style.display = 'none';
-        taskManager.style.display = 'none';
-        loginContainer.style.display = 'block';
-        // detach listener if any
-        if (unsubscribeTasksListener) {
-          unsubscribeTasksListener();
-          unsubscribeTasksListener = null;
-        }
-      }
-    });
-
-    // ------------------------
-    // Firestore: listen to tasks (realtime) and render
-    // ------------------------
-    function startTasksListener() {
-      if (!currentUser) return;
-      // detach previous listener if exists
-      if (unsubscribeTasksListener) {
-        unsubscribeTasksListener();
-        unsubscribeTasksListener = null;
-      }
-
-      // query: tasks where uid == currentUser.uid, order by date/time
-      const tasksCol = collection(db, 'tasks');
-      const q = query(
-        tasksCol,
-        where('uid', '==', currentUser.uid),
-        orderBy('date', 'asc'),
-        orderBy('time', 'asc')
-      );
-
-      unsubscribeTasksListener = onSnapshot(q, (snapshot) => {
-        const tasks = [];
-        snapshot.forEach(docSnap => {
-          tasks.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        // store locally for filtering/rendering
-        currentUser.tasks = tasks;
-        renderTasks();
-        // schedule notifications for tasks we just loaded
-        currentUser.tasks.forEach(scheduleNotification);
-      }, (err) => {
-        console.error('Tasks listener error:', err);
-      });
-    }
-
-    // ------------------------
-    // Add Task
-    // ------------------------
-    addTaskBtn.addEventListener('click', addTask);
-    taskInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') addTask();
-    });
-
-    async function addTask() {
+    // 🔹 Add Task
+    document.getElementById("addTaskBtn").onclick = async () => {
       const text = taskInput.value.trim();
-      if (!text) return;
-      if (!currentUser) {
-        alert('Please sign in to add tasks');
-        return;
-      }
-
-      const newTask = {
-        text,
-        completed: false,
-        date: taskDate.value || null,
-        time: taskTime.value || null,
-        venue: taskVenue.value || '',
-        urgent: taskUrgent.checked || false,
-        createdAt: new Date().toISOString(),
-        uid: currentUser.uid,
-        notified: false
-      };
-
+      if (!text) return alert("Enter a task!");
       try {
-        const docRef = await addDoc(collection(db, 'tasks'), newTask);
-        // Firestore listener will update UI automatically
-        // clear inputs
-        taskInput.value = '';
-        taskVenue.value = '';
-        taskUrgent.checked = false;
-      } catch (err) {
-        console.error('Error adding task:', err);
-        alert('Failed to add task. See console for details.');
+        await addDoc(collection(db, "tasks"), {
+          text,
+          uid: auth.currentUser.uid,
+          createdAt: Date.now()
+        });
+        taskInput.value = "";
+      } catch (e) {
+        console.error(e);
+        alert("Failed to add task. See console for details.");
       }
-    }
+    };
 
-    // ------------------------
-    // Render tasks with filtering
-    // ------------------------
-    filterBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentFilter = btn.dataset.filter;
-        renderTasks();
-      });
-    });
-
-    function renderTasks() {
-      taskList.innerHTML = '';
-      if (!currentUser || !currentUser.tasks) return;
-
-      let tasksToRender = currentUser.tasks.slice(); // copy
-
-      if (currentFilter === 'active') {
-        tasksToRender = tasksToRender.filter(t => !t.completed);
-      } else if (currentFilter === 'completed') {
-        tasksToRender = tasksToRender.filter(t => t.completed);
-      } else if (currentFilter === 'urgent') {
-        tasksToRender = tasksToRender.filter(t => t.urgent && !t.completed);
-      } else if (currentFilter === 'today') {
-        const todayISO = new Date().toISOString().split('T')[0];
-        tasksToRender = tasksToRender.filter(t => t.date === todayISO && !t.completed);
-      }
-
-      if (tasksToRender.length === 0) {
-        const li = document.createElement('li');
-        li.textContent = 'No tasks found';
-        li.style.textAlign = 'center';
-        li.style.padding = '20px';
-        li.style.color = '#7f8c8d';
-        taskList.appendChild(li);
-        return;
-      }
-
-      // sort: urgent first, then date/time
-      tasksToRender.sort((a, b) => {
-        if (a.urgent && !b.urgent) return -1;
-        if (!a.urgent && b.urgent) return 1;
-        if ((a.date || '') !== (b.date || '')) return (a.date || '') > (b.date || '') ? 1 : -1;
-        if ((a.time || '') !== (b.time || '')) return (a.time || '') > (b.time || '') ? 1 : -1;
-        return 0;
-      });
-
-      tasksToRender.forEach(task => {
-        const item = document.createElement('li');
-        item.className = `task-item ${task.completed ? 'completed' : ''} ${task.urgent ? 'urgent' : ''}`;
-        item.dataset.id = task.id;
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = !!task.completed;
-        checkbox.addEventListener('change', () => toggleTaskCompleted(task));
-
-        const content = document.createElement('div');
-        content.className = 'task-content';
-
-        const textDiv = document.createElement('div');
-        textDiv.className = 'task-text';
-        textDiv.textContent = task.text;
-
-        const details = document.createElement('div');
-        details.className = 'task-details';
-        if (task.date) {
-          const d = document.createElement('span');
-          d.innerHTML = `<strong>Date:</strong> ${formatDate(task.date)}`;
-          details.appendChild(d);
-        }
-        if (task.time) {
-          const t = document.createElement('span');
-          t.innerHTML = `<strong>Time:</strong> ${formatTime(task.time)}`;
-          details.appendChild(t);
-        }
-        if (task.venue) {
-          const v = document.createElement('span');
-          v.innerHTML = `<strong>Venue:</strong> ${task.venue}`;
-          details.appendChild(v);
-        }
-        if (task.urgent) {
-          const u = document.createElement('span');
-          u.innerHTML = `<strong>URGENT</strong>`;
-          u.style.color = '#e74c3c';
-          details.appendChild(u);
-        }
-
-        const actions = document.createElement('div');
-        actions.className = 'task-actions';
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn-secondary';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', () => deleteTask(task));
-
-        actions.appendChild(deleteBtn);
-
-        content.appendChild(textDiv);
-        content.appendChild(details);
-
-        item.appendChild(checkbox);
-        item.appendChild(content);
-        item.appendChild(actions);
-
-        taskList.appendChild(item);
+    // 🔹 Load Tasks in Real-Time
+    function subscribeToTasks(uid) {
+      const q = query(collection(db, "tasks"), where("uid", "==", uid));
+      onSnapshot(q, (snapshot) => {
+        taskList.innerHTML = "";
+        snapshot.forEach(docu => {
+          const data = docu.data();
+          const li = document.createElement("li");
+          li.textContent = data.text;
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "X";
+          delBtn.onclick = async () => {
+            await deleteDoc(doc(db, "tasks", docu.id));
+          };
+          li.appendChild(delBtn);
+          taskList.appendChild(li);
+        });
       });
     }
 
-    // ------------------------
-    // Toggle completed (update Firestore)
-    // ------------------------
-    async function toggleTaskCompleted(task) {
-      try {
-        const taskRef = doc(db, 'tasks', task.id);
-        await updateDoc(taskRef, { completed: !task.completed });
-        // Firestore snapshot handles UI update
-      } catch (err) {
-        console.error('Error updating task:', err);
-        alert('Failed to update task.');
-      }
-    }
-
-    // ------------------------
-    // Delete task
-    // ------------------------
-    async function deleteTask(task) {
-      if (!confirm('Delete this task permanently?')) return;
-      try {
-        await deleteDoc(doc(db, 'tasks', task.id));
-      } catch (err) {
-        console.error('Error deleting task:', err);
-        alert('Failed to delete task.');
-      }
-    }
-
-    // ------------------------
-    // Helpers: format date/time
-    // ------------------------
-    function formatDate(dateString) {
-      if (!dateString) return '';
-      const options = { weekday:'short', year:'numeric', month:'short', day:'numeric' };
-      return new Date(dateString).toLocaleDateString(undefined, options);
-    }
-    function formatTime(timeString) {
-      if (!timeString) return '';
-      const [hours, minutes] = timeString.split(':');
-      const hour = parseInt(hours, 10);
-      return `${hour % 12 || 12}:${minutes} ${hour >= 12 ? 'PM' : 'AM'}`;
-    }
-
-    // ------------------------
-    // Notifications
-    // ------------------------
-    enableNotificationsBtn.addEventListener('click', () => {
-      if (!('Notification' in window)) {
-        alert('Notifications are not supported in your browser.');
-        return;
-      }
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          notificationPermission = true;
-          document.querySelector('.notification-permission').style.display = 'none';
-        } else {
-          alert('Permission not granted for notifications.');
-        }
-      });
-    });
-
-    // Schedule a notification for a specific task (30 minutes before)
-    function scheduleNotification(task) {
-      try {
-        if (!task.date || !notificationPermission) return;
-
-        const datetimeStr = `${task.date}T${task.time || '23:59'}`;
-        const taskDateTime = new Date(datetimeStr);
-        const now = new Date();
-
-        if (taskDateTime <= now) return;
-
-        const notifyAt = new Date(taskDateTime.getTime() - (30 * 60 * 1000)); // 30 mins before
-        const msUntilNotify = notifyAt.getTime() - now.getTime();
-
-        // If it's already within 30 minutes, show immediately (and mark notified in firestore)
-        if (msUntilNotify <= 0 && !task.notified) {
-          showNotificationForTask(task);
-          updateDoc(doc(db, 'tasks', task.id), { notified: true }).catch(e => console.error(e));
-          return;
-        }
-
-        // Use setTimeout as best-effort (will not persist across reloads)
-        if (msUntilNotify > 0 && msUntilNotify < 7 * 24 * 60 * 60 * 1000) { // avoid huge timeouts
-          setTimeout(() => {
-            showNotificationForTask(task);
-            updateDoc(doc(db, 'tasks', task.id), { notified: true }).catch(e => console.error(e));
-          }, msUntilNotify);
-        }
-      } catch (err) {
-        console.error('scheduleNotification error:', err);
-      }
-    }
-
-    function showNotificationForTask(task) {
-      if (Notification.permission !== 'granted') return;
-      const body = `Your task "${task.text}" is coming up at ${task.time ? formatTime(task.time) : 'all day'}${task.venue ? ` at ${task.venue}` : ''}`;
-      const n = new Notification('Task Reminder', { body, icon: 'https://cdn-icons-png.flaticon.com/512/3063/3063180.png' });
-      n.onclick = () => window.focus();
-    }
-
-    // ------------------------
-    // Page load: hide notification UI if not supported or already granted
-    // ------------------------
-    window.addEventListener('DOMContentLoaded', () => {
-      if (!('Notification' in window)) {
-        document.querySelector('.notification-permission').style.display = 'none';
-      } else if (Notification.permission === 'granted') {
-        notificationPermission = true;
-        document.querySelector('.notification-permission').style.display = 'none';
+    // 🔹 Auth State Listener
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        authSection.style.display = "none";
+        taskSection.style.display = "block";
+        subscribeToTasks(user.uid);
+      } else {
+        authSection.style.display = "block";
+        taskSection.style.display = "none";
+        taskList.innerHTML = "";
       }
     });
-
-    // ------------------------
-    // Notes / Encouragement
-    // ------------------------
-    // This app uses Firebase Authentication (Email + Google) and Firestore to store tasks per user.
-    // Make sure in your Firebase Console:
-    // 1) Authentication > Sign-in method: enable Email/Password and Google.
-    // 2) Firestore: create a database in production or test mode depending on your needs.
-    // 3) Firestore rules in production should be tightened; for development you can use test rules.
-    //
-    // If you want offline-only behavior or local-only as before (IndexedDB), we can adapt this to keep a local store
-    // and sync with Firestore later. For now, this version gives you authenticated, cross-device tasks.
   </script>
 </body>
 </html>

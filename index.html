@@ -8,14 +8,18 @@
     *{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
     body{background:linear-gradient(135deg,#2b5876,#4e4376);color:#fff;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px;}
     h1{margin:20px;}
-    .container{background:rgba(255,255,255,0.1);padding:20px;border-radius:10px;width:100%;max-width:400px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);}
-    input,button{padding:10px;margin:8px 0;width:90%;border:none;border-radius:5px;}
-    input{outline:none;}
+    .container{background:rgba(255,255,255,0.1);padding:20px;border-radius:10px;width:100%;max-width:450px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);}
+    input,textarea,select,button{padding:10px;margin:8px 0;width:95%;border:none;border-radius:5px;}
+    input,textarea,select{outline:none;}
     button{cursor:pointer;background:#00c6ff;color:#fff;font-weight:bold;transition:0.3s;}
     button:hover{background:#0072ff;}
     ul{list-style:none;padding:0;margin-top:15px;}
-    li{background:rgba(255,255,255,0.15);margin:5px 0;padding:8px;border-radius:5px;display:flex;justify-content:space-between;align-items:center;}
-    .logout{background:#ff5252;}
+    li{background:rgba(255,255,255,0.15);margin:8px 0;padding:10px;border-radius:5px;display:flex;flex-direction:column;align-items:flex-start;}
+    .urgent{border-left:4px solid #ff5252;}
+    .completed{text-decoration:line-through;opacity:0.6;}
+    .task-header{display:flex;justify-content:space-between;width:100%;align-items:center;}
+    .task-actions button{margin:0 4px;padding:5px 10px;font-size:12px;}
+    .logout{background:#ff5252;margin-top:10px;}
     .logout:hover{background:#ff1744;}
   </style>
 </head>
@@ -35,17 +39,31 @@
 
   <!-- Task Section -->
   <div id="taskSection" class="container" style="display:none;">
-    <h3>Your Tasks</h3>
-    <input type="text" id="taskInput" placeholder="Enter new task" />
+    <h3>Add New Task</h3>
+    <input type="text" id="taskTitle" placeholder="Task Title" />
+    <textarea id="taskDesc" placeholder="Task Description"></textarea>
+    <input type="datetime-local" id="taskDate" />
+    <input type="text" id="taskVenue" placeholder="Venue / Location" />
+    <select id="taskPriority">
+      <option value="normal">Normal</option>
+      <option value="urgent">Urgent</option>
+    </select>
     <button id="addTaskBtn">Add Task</button>
+
+    <h3 style="margin-top:20px;">Your Tasks</h3>
     <ul id="taskList"></ul>
     <button id="logoutBtn" class="logout">Logout</button>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { 
+      getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { 
+      getFirestore, collection, addDoc, deleteDoc, doc, query, where, updateDoc, onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     // ✅ Firebase Config
     const firebaseConfig = {
@@ -58,7 +76,7 @@
       measurementId: "G-GYZJWK6KQW"
     };
 
-    // ✅ Initialize Firebase
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -67,9 +85,8 @@
     const authSection = document.getElementById("authSection");
     const taskSection = document.getElementById("taskSection");
     const taskList = document.getElementById("taskList");
-    const taskInput = document.getElementById("taskInput");
 
-    // 🔹 Login
+    // --- AUTH ---
     document.getElementById("loginBtn").onclick = () => {
       const emailVal = email.value.trim();
       const passVal = password.value.trim();
@@ -78,7 +95,6 @@
         .catch(e => alert(e.message));
     };
 
-    // 🔹 Signup
     document.getElementById("signupBtn").onclick = () => {
       const emailVal = email.value.trim();
       const passVal = password.value.trim();
@@ -87,56 +103,105 @@
         .catch(e => alert(e.message));
     };
 
-    // 🔹 Google Login
     document.getElementById("googleLogin").onclick = () => {
       signInWithPopup(auth, provider)
         .then(() => alert("Google Login successful!"))
         .catch(e => alert(e.message));
     };
 
-    // 🔹 Logout
-    document.getElementById("logoutBtn").onclick = () => {
-      signOut(auth);
-    };
+    document.getElementById("logoutBtn").onclick = () => signOut(auth);
 
-    // 🔹 Add Task
+    // --- TASK HANDLING ---
     document.getElementById("addTaskBtn").onclick = async () => {
-      const text = taskInput.value.trim();
-      if (!text) return alert("Enter a task!");
+      const title = document.getElementById("taskTitle").value.trim();
+      const desc = document.getElementById("taskDesc").value.trim();
+      const date = document.getElementById("taskDate").value;
+      const venue = document.getElementById("taskVenue").value.trim();
+      const priority = document.getElementById("taskPriority").value;
+      
+      if (!title || !date) return alert("Please fill title and date!");
+
       try {
         await addDoc(collection(db, "tasks"), {
-          text,
           uid: auth.currentUser.uid,
+          title,
+          desc,
+          date,
+          venue,
+          priority,
+          completed: false,
           createdAt: Date.now()
         });
-        taskInput.value = "";
+        alert("Task added successfully!");
+        document.getElementById("taskTitle").value = "";
+        document.getElementById("taskDesc").value = "";
+        document.getElementById("taskDate").value = "";
+        document.getElementById("taskVenue").value = "";
       } catch (e) {
         console.error(e);
-        alert("Failed to add task. See console for details.");
+        alert("Error adding task!");
       }
     };
 
-    // 🔹 Load Tasks in Real-Time
+    // --- Real-time Task Sync ---
     function subscribeToTasks(uid) {
       const q = query(collection(db, "tasks"), where("uid", "==", uid));
-      onSnapshot(q, (snapshot) => {
+      onSnapshot(q, snapshot => {
         taskList.innerHTML = "";
         snapshot.forEach(docu => {
           const data = docu.data();
           const li = document.createElement("li");
-          li.textContent = data.text;
+          if (data.priority === "urgent") li.classList.add("urgent");
+          if (data.completed) li.classList.add("completed");
+
+          const header = document.createElement("div");
+          header.classList.add("task-header");
+          header.innerHTML = `<strong>${data.title}</strong> <small>${new Date(data.date).toLocaleString()}</small>`;
+
+          const desc = document.createElement("p");
+          desc.textContent = data.desc || "No description";
+
+          const venue = document.createElement("p");
+          venue.innerHTML = `<b>Venue:</b> ${data.venue || 'N/A'}`;
+
+          const actions = document.createElement("div");
+          actions.classList.add("task-actions");
+
+          const doneBtn = document.createElement("button");
+          doneBtn.textContent = data.completed ? "Undo" : "Complete";
+          doneBtn.onclick = async () => {
+            await updateDoc(doc(db, "tasks", docu.id), { completed: !data.completed });
+          };
+
           const delBtn = document.createElement("button");
-          delBtn.textContent = "X";
+          delBtn.textContent = "Delete";
           delBtn.onclick = async () => {
             await deleteDoc(doc(db, "tasks", docu.id));
           };
-          li.appendChild(delBtn);
+
+          actions.appendChild(doneBtn);
+          actions.appendChild(delBtn);
+
+          li.appendChild(header);
+          li.appendChild(desc);
+          li.appendChild(venue);
+          li.appendChild(actions);
           taskList.appendChild(li);
+
+          // 🔔 Notification Scheduling
+          if (!data.completed) {
+            const timeDiff = new Date(data.date).getTime() - Date.now();
+            if (timeDiff > 0 && timeDiff < 3600000) { // within 1 hour
+              setTimeout(() => {
+                alert(`🔔 Reminder: ${data.title} at ${data.venue}`);
+              }, timeDiff);
+            }
+          }
         });
       });
     }
 
-    // 🔹 Auth State Listener
+    // --- Auth Listener ---
     onAuthStateChanged(auth, user => {
       if (user) {
         authSection.style.display = "none";
